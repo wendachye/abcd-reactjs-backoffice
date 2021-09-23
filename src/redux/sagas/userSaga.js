@@ -1,11 +1,8 @@
-import { takeLatest, all, put, select, call } from 'redux-saga/effects';
+import { takeLatest, all, put } from 'redux-saga/effects';
 import { setUser, logout } from 'redux/slices/userSlice';
 
 export default function* sagaWatcher() {
-  yield all([
-    takeLatest(setUser.TRIGGER, handleSetUser),
-    takeLatest(logout.TRIGGER, handleLogout),
-  ]);
+  yield all([takeLatest(setUser.TRIGGER, handleSetUser), takeLatest(logout.TRIGGER, handleLogout)]);
 }
 
 function* handleSetUser(action) {
