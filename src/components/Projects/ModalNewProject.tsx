@@ -1,37 +1,52 @@
 import { memo } from 'react';
 import { push } from 'connected-react-router';
-import { useDispatch, useSelector } from 'react-redux';
 import { Modal, Row, Col, Form, FormGroup, Input } from 'reactstrap';
 import Select2 from 'react-select2-wrapper';
 import ReactDatetime from 'react-datetime';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import moment from 'moment';
 import uuid from 'uuid';
+import moment from 'moment';
 import Button from 'components/Custom/Button';
 import { propertyData } from 'constants/app';
 import { createProject } from 'redux/slices/projectSlice';
+import { useAppSelector, useAppDispatch } from 'hooks/app';
 
-const formSchema = yup
-  .object({
-    name: yup.string().required('Name is required'),
-    nric: yup.string().required('NRIC is required'),
-    contactNo: yup.string().required('Contact No is required'),
-    address: yup.string().required('Address is required'),
-  })
-  .required();
+interface FormInputs {
+  name: string;
+  property: string;
+  nric: string;
+  contactNo: string;
+  address: string;
+  startDate: string;
+}
 
-const ModalNewProject = ({ visible, onClickCancel }) => {
-  const dispatch = useDispatch();
-  const { loading } = useSelector((state) => state.project);
-  const { control, handleSubmit, formState, reset } = useForm({
-    resolver: yupResolver(formSchema),
-  });
+const resolver = yupResolver(
+  yup
+    .object({
+      name: yup.string().required('Name is required'),
+      property: yup.string().required('Property is required'),
+      nric: yup.string().required('NRIC is required'),
+      contactNo: yup.string().required('Contact No is required'),
+      address: yup.string().required('Address is required'),
+      startDate: yup.string().required('Start Date is required'),
+    })
+    .required(),
+);
 
-  const onSubmitCreateProject = (data) => {
+interface ModalNewProjectProps {
+  visible: boolean;
+  onClickCancel: () => void;
+}
+
+const ModalNewProject = ({ visible, onClickCancel }: ModalNewProjectProps) => {
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state) => state.project);
+  const { control, handleSubmit, formState, reset } = useForm<FormInputs>({ resolver });
+
+  const onSubmitCreateProject = (data: FormInputs) => {
     try {
-      console.log('data', data);
       const project = {
         uuid: uuid.v4(),
         name: data.name,
@@ -39,7 +54,7 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
         nric: data.nric,
         contactNo: data.contactNo,
         address: data.address,
-        startDate: data.startDate.format('DD MMM YYYY'),
+        startDate: data.startDate,
       };
 
       dispatch(createProject.trigger({ project }));
@@ -73,7 +88,6 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
                 <Controller
                   name="name"
                   control={control}
-                  defaultValue=""
                   render={({ field, fieldState: { error } }) => (
                     <>
                       <Input {...field} placeholder="Name" type="text" invalid={!!error} />
@@ -90,9 +104,6 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
                   name="property"
                   control={control}
                   defaultValue={propertyData?.[0].id || ''}
-                  rules={{
-                    required: true,
-                  }}
                   render={({ field, fieldState: { error } }) => (
                     <>
                       <Select2
@@ -115,10 +126,6 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
                 <Controller
                   name="nric"
                   control={control}
-                  defaultValue=""
-                  rules={{
-                    required: true,
-                  }}
                   render={({ field, fieldState: { error } }) => (
                     <>
                       <Input {...field} placeholder="NRIC" type="text" invalid={!!error} />
@@ -134,13 +141,9 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
                 <Controller
                   name="contactNo"
                   control={control}
-                  defaultValue=""
-                  rules={{
-                    required: true,
-                  }}
                   render={({ field, fieldState: { error } }) => (
                     <>
-                      <Input {...field} placeholder="Contact No" type="text" invalid={!!error} />
+                      <Input {...field} placeholder="Contact No" type="tel" invalid={!!error} />
                       {error && <div className="invalid-feedback">{error.message}</div>}
                     </>
                   )}
@@ -153,10 +156,6 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
                 <Controller
                   name="address"
                   control={control}
-                  defaultValue=""
-                  rules={{
-                    required: true,
-                  }}
                   render={({ field, fieldState: { error } }) => (
                     <>
                       <Input {...field} placeholder="Address" type="text" invalid={!!error} />
@@ -172,10 +171,7 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
                 <Controller
                   name="startDate"
                   control={control}
-                  defaultValue={moment()}
-                  rules={{
-                    required: true,
-                  }}
+                  defaultValue={moment().format('DD MMM YYYY')}
                   render={({ field, fieldState: { error } }) => (
                     <>
                       <ReactDatetime
@@ -195,7 +191,7 @@ const ModalNewProject = ({ visible, onClickCancel }) => {
           </Row>
         </div>
         <div className="modal-footer">
-          <Button color="secondary" type="button" onClick={handleCancel}>
+          <Button color="secondary" type="reset" onClick={handleCancel}>
             Cancel
           </Button>
           <Button

@@ -27,7 +27,7 @@ const persistConfig = {
   whitelist: ['user', 'project'],
   transforms: [
     encryptTransform({
-      secretKey: process.env.REACT_APP_REDUX_ENCRYPTOR_KEY,
+      secretKey: process.env.REACT_APP_REDUX_ENCRYPTOR_KEY || '',
       onError: function (error) {
         console.log(error);
       },

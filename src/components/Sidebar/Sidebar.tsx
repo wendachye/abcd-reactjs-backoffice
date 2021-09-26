@@ -1,16 +1,30 @@
 import { useState } from 'react';
 import { useLocation, NavLink as NavLinkRRD, Link } from 'react-router-dom';
 import classnames from 'classnames';
-import { PropTypes } from 'prop-types';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { Collapse, NavbarBrand, Navbar, NavItem, NavLink, Nav } from 'reactstrap';
+import { RouteType } from 'types/App';
 
-const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo, rtlActive }) => {
+interface SidebarProps {
+  sidenavOpen: boolean;
+  toggleSidenav: () => void;
+  routes: RouteType[];
+  logo?: {
+    innerLink?: string;
+    outterLink?: string;
+    imgSrc: string;
+    imgAlt: string;
+    width: string;
+    height: string;
+  };
+}
+
+const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo }: SidebarProps): JSX.Element => {
   const location = useLocation();
 
-  const getCollapseInitialState = (routes) => {
+  const getCollapseInitialState = (routes: RouteType[]) => {
     for (let i = 0; i < routes.length; i++) {
-      if (routes[i].collapse && getCollapseInitialState(routes[i].views)) {
+      if (routes[i].collapse && getCollapseInitialState(routes[i].views || [])) {
         return true;
       } else if (location.pathname.indexOf(routes[i].path) !== -1) {
         return true;
@@ -19,24 +33,26 @@ const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo, rtlActive }) => {
     return false;
   };
 
-  const getCollapseStates = (routes) => {
+  const getCollapseStates = (routes: RouteType[]) => {
     let initialState = {};
-    routes.map((prop, key) => {
-      if (prop.collapse) {
+    routes.map((route) => {
+      if (route.collapse && route.state && route.views) {
         initialState = {
-          [prop.state]: getCollapseInitialState(prop.views),
-          ...getCollapseStates(prop.views),
+          [route.state]: getCollapseInitialState(route.views),
+          ...getCollapseStates(route.views),
           ...initialState,
         };
       }
-      return null;
+      return {};
     });
     return initialState;
   };
 
-  const [state, setState] = useState(getCollapseStates(routes));
+  const [state, setState] = useState<{
+    [k in string]: boolean;
+  }>(getCollapseStates(routes));
 
-  const activeRoute = (routeName) => {
+  const activeRoute = (routeName: string) => {
     return location.pathname.indexOf(routeName) > -1 ? 'active' : '';
   };
 
@@ -58,61 +74,50 @@ const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo, rtlActive }) => {
     }
   };
 
-  const createLinks = (routes) => {
-    return routes.map((prop, key) => {
-      if (prop.redirect) {
-        return null;
-      }
-      if (prop.collapse) {
-        var st = {};
-        st[prop['state']] = !state[prop.state];
+  const createLinks = (routes: RouteType[]) => {
+    return routes.map((route) => {
+      if (state && route.collapse && route.state && route.views) {
+        const st: { [k in string]: boolean } = {};
+        st[route['state']] = !state[route.state];
+
         return (
-          <NavItem key={key}>
+          <NavItem key={route.name}>
             <NavLink
               href="#pablo"
               data-toggle="collapse"
-              aria-expanded={state[prop.state]}
+              aria-expanded={state[route.state]}
               className={classnames({
-                active: getCollapseInitialState(prop.views),
+                active: getCollapseInitialState(route.views),
               })}
               onClick={(e) => {
                 e.preventDefault();
                 setState(st);
               }}
             >
-              {prop.icon ? (
+              {route.icon && (
                 <>
-                  <i className={prop.icon} />
-                  <span className="nav-link-text">{prop.name}</span>
+                  <i className={route.icon} />
+                  <span className="nav-link-text">{route.name}</span>
                 </>
-              ) : prop.miniName ? (
-                <>
-                  <span className="sidenav-mini-icon"> {prop.miniName} </span>
-                  <span className="sidenav-normal"> {prop.name} </span>
-                </>
-              ) : null}
+              )}
             </NavLink>
-            <Collapse isOpen={state[prop.state]}>
-              <Nav className="nav-sm flex-column">{createLinks(prop.views)}</Nav>
+            <Collapse isOpen={state[route.state]}>
+              <Nav className="nav-sm flex-column">{createLinks(route.views)}</Nav>
             </Collapse>
           </NavItem>
         );
       }
+
       return (
-        <NavItem className={activeRoute(prop.path)} key={key}>
-          <NavLink to={prop.path} activeClassName="" onClick={closeSidenav} tag={NavLinkRRD}>
-            {prop.icon !== undefined ? (
+        <NavItem key={route.name} className={activeRoute(route.path)}>
+          <NavLink to={route.path} activeClassName="" onClick={closeSidenav} tag={NavLinkRRD}>
+            {route.icon ? (
               <>
-                <i className={prop.icon} />
-                <span className="nav-link-text">{prop.name}</span>
-              </>
-            ) : prop.miniName !== undefined ? (
-              <>
-                <span className="sidenav-mini-icon"> {prop.miniName} </span>
-                <span className="sidenav-normal"> {prop.name} </span>
+                <i className={route.icon} />
+                <span className="nav-link-text">{route.name}</span>
               </>
             ) : (
-              prop.name
+              route.name
             )}
           </NavLink>
         </NavItem>
@@ -120,7 +125,8 @@ const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo, rtlActive }) => {
     });
   };
 
-  let navbarBrandProps;
+  let navbarBrandProps = {};
+
   if (logo && logo.innerLink) {
     navbarBrandProps = {
       to: logo.innerLink,
@@ -132,6 +138,7 @@ const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo, rtlActive }) => {
       target: '_blank',
     };
   }
+
   const scrollBarInner = (
     <div className="scrollbar-inner">
       <div className="sidenav-header d-flex align-items-center">
@@ -171,10 +178,7 @@ const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo, rtlActive }) => {
 
   return (
     <Navbar
-      className={
-        'sidenav navbar-vertical navbar-expand-xs navbar-light bg-white ' +
-        (rtlActive ? '' : 'fixed-left')
-      }
+      className="sidenav navbar-vertical navbar-expand-xs navbar-light bg-white fixed-left"
       onMouseEnter={onMouseEnterSidenav}
       onMouseLeave={onMouseLeaveSidenav}
     >
@@ -185,28 +189,6 @@ const Sidebar = ({ toggleSidenav, sidenavOpen, routes, logo, rtlActive }) => {
       )}
     </Navbar>
   );
-};
-
-Sidebar.defaultProps = {
-  routes: [{}],
-  toggleSidenav: () => {},
-  sidenavOpen: false,
-  rtlActive: false,
-};
-
-Sidebar.propTypes = {
-  sidenavOpen: PropTypes.bool,
-  toggleSidenav: PropTypes.func,
-  routes: PropTypes.arrayOf(PropTypes.object),
-  logo: PropTypes.shape({
-    innerLink: PropTypes.string,
-    outterLink: PropTypes.string,
-    imgSrc: PropTypes.string.isRequired,
-    imgAlt: PropTypes.string.isRequired,
-    width: PropTypes.string,
-    height: PropTypes.string,
-  }),
-  rtlActive: PropTypes.bool,
 };
 
 export default Sidebar;

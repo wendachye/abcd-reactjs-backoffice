@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, Route, Switch, Redirect } from 'react-router-dom';
-import AuthNavbar from 'components/Navbars/AuthNavbar.js';
-import AuthFooter from 'components/Footers/AuthFooter.js';
+import AuthNavbar from 'components/Navbars/AuthNavbar';
+import AuthFooter from 'components/Footers/AuthFooter';
 import routes from 'routes';
 
 function Auth() {

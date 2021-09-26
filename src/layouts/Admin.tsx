@@ -1,31 +1,32 @@
 import { useRef, useState, useEffect } from 'react';
 import { useLocation, Route, Switch, Redirect } from 'react-router-dom';
 import AdminNavbar from 'components/Navbars/AdminNavbar';
-import Sidebar from 'components/Sidebar/Sidebar.js';
+import Sidebar from 'components/Sidebar/Sidebar';
 import routes from 'routes';
+import { RouteType } from 'types/App';
 
-const Admin = () => {
+const Admin = (): JSX.Element => {
   const [sidenavOpen, setSidenavOpen] = useState(true);
   const location = useLocation();
-  const mainContentRef = useRef(null);
+  const mainContentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     document.documentElement.scrollTop = 0;
-    document.scrollingElement.scrollTop = 0;
-    mainContentRef.current.scrollTop = 0;
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+    if (mainContentRef.current) mainContentRef.current.scrollTop = 0;
   }, [location]);
 
-  const getRoutes = (routes) => {
-    return routes.map((route) => {
-      if (route.collapse) {
+  const getRoutes = (routes: RouteType[]): unknown[] => {
+    return routes.map((route: RouteType) => {
+      if ((route.collapse, route.views)) {
         return getRoutes(route.views);
       }
 
-      return <Route path={route.path} component={route.component} key={route.name} />;
+      return <Route key={route.name} path={route.path} component={route.component} />;
     });
   };
 
-  const toggleSidenav = (e) => {
+  const toggleSidenav = () => {
     if (document.body.classList.contains('g-sidenav-pinned')) {
       document.body.classList.remove('g-sidenav-pinned');
       document.body.classList.add('g-sidenav-hidden');
@@ -51,7 +52,7 @@ const Admin = () => {
         }}
       />
       <div className="main-content" ref={mainContentRef}>
-        <AdminNavbar toggleSidenav={toggleSidenav} sidenavOpen={sidenavOpen} />
+        <AdminNavbar sidenavOpen={sidenavOpen} toggleSidenav={toggleSidenav} />
         <Switch>
           {getRoutes(routes)}
           <Redirect from="*" to="/dashboard" />

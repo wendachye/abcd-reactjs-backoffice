@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom';
 import 'react-notification-alert/dist/animate.css';
 import 'react-perfect-scrollbar/dist/css/styles.css';

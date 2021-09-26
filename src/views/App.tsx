@@ -4,16 +4,14 @@ import { ConnectedRouter } from 'connected-react-router';
 import { Route, Switch, Redirect } from 'react-router-dom';
 import { store, persistor, history } from 'redux/store';
 import AdminLayout from 'layouts/Admin';
-import AuthLayout from 'layouts/Auth';
 
-const App = () => {
+const App = (): JSX.Element => {
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
         <ConnectedRouter history={history}>
           <Switch>
-            <Route path="/" render={(props) => <AdminLayout {...props} />} />
-            <Route path="/auth" render={(props) => <AuthLayout {...props} />} />
+            <Route path="/" render={() => <AdminLayout />} />
             <Redirect from="*" to="/" />
           </Switch>
         </ConnectedRouter>

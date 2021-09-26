@@ -1,17 +1,13 @@
 import { takeLatest, all, put } from 'redux-saga/effects';
-import { createProject } from 'redux/slices/projectSlice';
+import { createProject } from '../slices/projectSlice';
+import { PayloadAction } from '@reduxjs/toolkit';
+import { ProjectType } from 'types/Project';
 
-export default function* sagaWatcher() {
-  yield all([takeLatest(createProject.TRIGGER, handleCreateProject)]);
-}
-
-function* handleCreateProject(action) {
+function* handleCreateProject(action: PayloadAction<{ project: ProjectType }>) {
   try {
     yield put(createProject.request());
 
     const { project } = action.payload;
-
-    console.log(project);
 
     yield put(createProject.success({ project }));
   } catch (error) {
@@ -20,4 +16,8 @@ function* handleCreateProject(action) {
   } finally {
     yield put(createProject.fulfill());
   }
+}
+
+export default function* sagaWatcher() {
+  yield all([takeLatest(createProject.TRIGGER, handleCreateProject)]);
 }

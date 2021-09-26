@@ -1,5 +1,4 @@
 import classnames from 'classnames';
-import PropTypes from 'prop-types';
 import {
   Collapse,
   DropdownMenu,
@@ -17,7 +16,12 @@ import {
   Col,
 } from 'reactstrap';
 
-const AdminNavbar = ({ sidenavOpen, toggleSidenav }) => {
+interface AdminNavbarProps {
+  sidenavOpen: boolean;
+  toggleSidenav: (e: React.MouseEvent<HTMLDivElement>) => void;
+}
+
+const AdminNavbar = ({ sidenavOpen, toggleSidenav }: AdminNavbarProps) => {
   return (
     <>
       <Navbar className={'navbar-top navbar-expand border-bottom navbar-dark bg-info'}>
@@ -322,18 +326,6 @@ const AdminNavbar = ({ sidenavOpen, toggleSidenav }) => {
       </Navbar>
     </>
   );
-};
-
-AdminNavbar.defaultProps = {
-  toggleSidenav: () => {},
-  sidenavOpen: false,
-  theme: 'dark',
-};
-
-AdminNavbar.propTypes = {
-  toggleSidenav: PropTypes.func,
-  sidenavOpen: PropTypes.bool,
-  theme: PropTypes.oneOf(['dark', 'light']),
 };
 
 export default AdminNavbar;

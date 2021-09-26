@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { push } from 'connected-react-router';
 import {
   Container,
   Card,
@@ -15,26 +14,30 @@ import List from 'list.js';
 import PageSubheader from 'components/Headers/PageSubheader';
 import Button from 'components/Custom/Button';
 import ModalNewProject from 'components/Projects/ModalNewProject';
+import { useAppSelector, useAppDispatch } from 'hooks/app';
+import { ProjectType } from 'types/Project';
 
 const ProjectListing = () => {
-  const tableRef = useRef(null);
-  const { projects } = useSelector((state) => state.project);
+  const tableRef = useRef<HTMLDivElement | null>(null);
+  const dispatch = useAppDispatch();
+  const { projects } = useAppSelector((state) => state.project);
   const [modalNewVisible, setModalNewVisible] = useState(false);
 
   useEffect(() => {
-    new List(tableRef.current, {
-      valueNames: ['no', 'name', 'property', 'address', 'contactNo', 'startDate'],
-      listClass: 'list',
-    });
-  }, []);
+    if (tableRef.current) {
+      new List(tableRef.current, {
+        valueNames: ['no', 'name', 'property', 'address', 'contactNo', 'startDate'],
+        listClass: 'list',
+      });
+    }
+  }, [tableRef]);
 
-  const onClickNewProject = () => {
-    setModalNewVisible(true);
-  };
+  const onClickNewProject = () => setModalNewVisible(true);
 
-  const onClickCancelProject = () => {
-    setModalNewVisible(false);
-  };
+  const onClickCancelProject = () => setModalNewVisible(false);
+
+  const onClickProjectName = (project: ProjectType) =>
+    dispatch(push(`/projects/${project.uuid}`, project));
 
   return (
     <>
@@ -82,15 +85,16 @@ const ProjectListing = () => {
                 <tbody className="list">
                   {projects.map((project, index) => {
                     return (
-                      <tr key={index}>
+                      <tr key={project.uuid}>
                         <td className="no">{index + 1}</td>
-                        <td className="name">
-                          <Link
-                            // className="font-weight-bold text-primary mt-5"
-                            to={`/projects/${project.uuid}`}
+                        <td className="name" onClick={() => onClickProjectName(project)}>
+                          <a
+                            style={{ color: '#5e72e4', cursor: 'pointer' }}
+                            href="#"
+                            onClick={() => onClickProjectName(project)}
                           >
                             {project.name}
-                          </Link>
+                          </a>
                         </td>
                         <td className="property">{project.property}</td>
                         <td className="address">{project.address}</td>
