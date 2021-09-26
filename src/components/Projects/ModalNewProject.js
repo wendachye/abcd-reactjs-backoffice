@@ -1,12 +1,17 @@
+import { memo } from 'react';
+import { push } from 'connected-react-router';
+import { useDispatch, useSelector } from 'react-redux';
 import { Modal, Row, Col, Form, FormGroup, Input } from 'reactstrap';
 import Select2 from 'react-select2-wrapper';
 import ReactDatetime from 'react-datetime';
 import { useForm, Controller } from 'react-hook-form';
-import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import moment from 'moment';
+import uuid from 'uuid';
 import Button from 'components/Custom/Button';
 import { propertyData } from 'constants/app';
+import { createProject } from 'redux/slices/projectSlice';
 
 const formSchema = yup
   .object({
@@ -17,12 +22,46 @@ const formSchema = yup
   })
   .required();
 
-const ModalNewProject = ({ visible, onClickCancel, onClickSave, loading }) => {
-  const { control, handleSubmit, formState } = useForm({ resolver: yupResolver(formSchema) });
+const ModalNewProject = ({ visible, onClickCancel }) => {
+  const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.project);
+  const { control, handleSubmit, formState, reset } = useForm({
+    resolver: yupResolver(formSchema),
+  });
+
+  const onSubmitCreateProject = (data) => {
+    try {
+      console.log('data', data);
+      const project = {
+        uuid: uuid.v4(),
+        name: data.name,
+        property: data.property,
+        nric: data.nric,
+        contactNo: data.contactNo,
+        address: data.address,
+        startDate: data.startDate.format('DD MMM YYYY'),
+      };
+
+      dispatch(createProject.trigger({ project }));
+      dispatch(push(`/projects/${project.uuid}`, project));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleCancel = () => {
+    reset({
+      name: '',
+      nric: '',
+      contactNo: '',
+      address: '',
+    });
+    onClickCancel();
+  };
 
   return (
     <Modal className="modal-dialog-centered" size="lg" isOpen={visible}>
-      <Form>
+      <Form onSubmit={handleSubmit(onSubmitCreateProject)}>
         <div className="modal-header justify-content-center">
           <h5 className="modal-title">New Project</h5>
         </div>
@@ -50,7 +89,7 @@ const ModalNewProject = ({ visible, onClickCancel, onClickSave, loading }) => {
                 <Controller
                   name="property"
                   control={control}
-                  defaultValue="1"
+                  defaultValue={propertyData?.[0].id || ''}
                   rules={{
                     required: true,
                   }}
@@ -59,7 +98,6 @@ const ModalNewProject = ({ visible, onClickCancel, onClickSave, loading }) => {
                       <Select2
                         {...field}
                         className="form-control"
-                        defaultValue="1"
                         options={{
                           placeholder: 'Property',
                         }}
@@ -157,7 +195,7 @@ const ModalNewProject = ({ visible, onClickCancel, onClickSave, loading }) => {
           </Row>
         </div>
         <div className="modal-footer">
-          <Button color="secondary" type="button" onClick={onClickCancel}>
+          <Button color="secondary" type="button" onClick={handleCancel}>
             Cancel
           </Button>
           <Button
@@ -165,7 +203,6 @@ const ModalNewProject = ({ visible, onClickCancel, onClickSave, loading }) => {
             type="submit"
             disabled={loading || formState.isSubmitting}
             loading={loading}
-            onClick={handleSubmit(onClickSave)}
           >
             Save
           </Button>
@@ -175,4 +212,4 @@ const ModalNewProject = ({ visible, onClickCancel, onClickSave, loading }) => {
   );
 };
 
-export default ModalNewProject;
+export default memo(ModalNewProject);

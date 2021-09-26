@@ -1,16 +1,32 @@
-import { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Container, Card, CardHeader, Table, Row, Col } from 'reactstrap';
+import { useRef, useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+import {
+  Container,
+  Card,
+  CardHeader,
+  CardBody,
+  Table,
+  Row,
+  Col,
+  UncontrolledTooltip,
+} from 'reactstrap';
+import List from 'list.js';
 import PageSubheader from 'components/Headers/PageSubheader';
 import Button from 'components/Custom/Button';
-import ModalNewProject from 'components/ModalNewProject';
-import { createProject } from 'redux/slices/projectSlice';
-import { propertyData } from 'constants/app';
+import ModalNewProject from 'components/Projects/ModalNewProject';
 
 const ProjectListing = () => {
-  const dispatch = useDispatch();
-  const { loading, projects } = useSelector((state) => state.project);
+  const tableRef = useRef(null);
+  const { projects } = useSelector((state) => state.project);
   const [modalNewVisible, setModalNewVisible] = useState(false);
+
+  useEffect(() => {
+    new List(tableRef.current, {
+      valueNames: ['no', 'name', 'property', 'address', 'contactNo', 'startDate'],
+      listClass: 'list',
+    });
+  }, []);
 
   const onClickNewProject = () => {
     setModalNewVisible(true);
@@ -18,23 +34,6 @@ const ProjectListing = () => {
 
   const onClickCancelProject = () => {
     setModalNewVisible(false);
-  };
-
-  const onClickSaveProject = (data) => {
-    try {
-      const project = {
-        name: data.name,
-        property: propertyData.find((property) => property.id === data.property)?.text,
-        nric: data.nric,
-        contactNo: data.contactNo,
-        address: data.address,
-        startDate: data.startDate.format('DD MMM YYYY'),
-      };
-
-      dispatch(createProject.trigger({ project }));
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   return (
@@ -54,53 +53,77 @@ const ProjectListing = () => {
               </Col>
             </Row>
           </CardHeader>
-          <Table className="align-items-center table-flush" responsive>
-            <thead className="thead-light">
-              <tr>
-                <th className="sort" data-sort="no" scope="col">
-                  no
-                </th>
-                <th className="sort" data-sort="name" scope="col">
-                  Name
-                </th>
-                <th className="sort" data-sort="property" scope="col">
-                  Property
-                </th>
-                <th className="sort" data-sort="address" scope="col">
-                  Address
-                </th>
-                <th className="sort" data-sort="contactNo" scope="col">
-                  Contact No
-                </th>
-                <th className="sort" data-sort="startDate" scope="col">
-                  Start Date
-                </th>
-                <th scope="col" />
-              </tr>
-            </thead>
-            <tbody className="list">
-              {projects.map((project, index) => {
-                return (
-                  <tr key={index}>
-                    <td className="no">{index + 1}</td>
-                    <td className="name">{project.name}</td>
-                    <td className="property">{project.property}</td>
-                    <td className="address">{project.address}</td>
-                    <td className="contactNo">{project.contactNo}</td>
-                    <td className="startDate">{project.startDate}</td>
+          <CardBody>
+            <div className="table-responsive" ref={tableRef}>
+              <Table className="align-items-center table-flush" responsive>
+                <thead className="thead-light">
+                  <tr>
+                    <th className="sort" data-sort="no" scope="col">
+                      no
+                    </th>
+                    <th className="sort" data-sort="name" scope="col">
+                      Name
+                    </th>
+                    <th className="sort" data-sort="property" scope="col">
+                      Property
+                    </th>
+                    <th className="sort" data-sort="address" scope="col">
+                      Address
+                    </th>
+                    <th className="sort" data-sort="contactNo" scope="col">
+                      Contact No
+                    </th>
+                    <th className="sort" data-sort="startDate" scope="col">
+                      Start Date
+                    </th>
+                    <th scope="col">Action</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+                </thead>
+                <tbody className="list">
+                  {projects.map((project, index) => {
+                    return (
+                      <tr key={index}>
+                        <td className="no">{index + 1}</td>
+                        <td className="name">
+                          <Link
+                            // className="font-weight-bold text-primary mt-5"
+                            to={`/projects/${project.uuid}`}
+                          >
+                            {project.name}
+                          </Link>
+                        </td>
+                        <td className="property">{project.property}</td>
+                        <td className="address">{project.address}</td>
+                        <td className="contactNo">{project.contactNo}</td>
+                        <td className="startDate">{project.startDate}</td>
+                        <td>
+                          <a
+                            id={`tooltip-delete-${project.uuid}`}
+                            className="table-action table-action-delete"
+                            href="#pablo"
+                            onClick={(e) => e.preventDefault()}
+                          >
+                            <i className="fas fa-trash" />
+                          </a>
+                          <UncontrolledTooltip delay={0} target={`tooltip-delete-${project.uuid}`}>
+                            Delete
+                          </UncontrolledTooltip>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {projects.length === 0 && (
+                    <tr>
+                      <td>No data found</td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </div>
+          </CardBody>
         </Card>
       </Container>
-      <ModalNewProject
-        visible={modalNewVisible}
-        onClickCancel={onClickCancelProject}
-        onClickSave={onClickSaveProject}
-        loading={loading}
-      />
+      <ModalNewProject visible={modalNewVisible} onClickCancel={onClickCancelProject} />
     </>
   );
 };
