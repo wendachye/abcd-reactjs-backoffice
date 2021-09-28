@@ -10,6 +10,7 @@ interface CustomButtonProps {
   disabled?: boolean;
   loading?: boolean;
   debounce?: boolean;
+  uppercase?: boolean;
   onClick?: () => void | undefined;
 }
 
@@ -22,6 +23,7 @@ const CustomButton: FC<CustomButtonProps> = ({
   disabled,
   loading,
   debounce,
+  uppercase,
   onClick,
 }) => {
   const debounceOnClick = useMemo(
@@ -44,7 +46,7 @@ const CustomButton: FC<CustomButtonProps> = ({
       disabled={disabled}
       onClick={!debounce ? debounceOnClick : onClick}
     >
-      <>{children}</>
+      {uppercase && typeof children === 'string' ? children.toUpperCase() : children}
       {loading && (
         <img
           style={{
