@@ -1,20 +1,49 @@
-import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { push } from 'connected-react-router';
+import { useParams } from 'react-router-dom';
 import { Container, Card, CardHeader, CardBody, Row, Col } from 'reactstrap';
 import PageSubheader from 'components/Headers/PageSubheader';
-import FormProjectDetails from 'components/Projects/FormProjectDetails';
+import ProjectDetailsUpdateForm from 'components/Project/UpdateProjectForm';
 import Button from 'components/Custom/Button';
-import { ProjectType } from 'types/Project';
+import SectionQuotation from 'components/Project/SectionQuotation';
+import { QuotationType } from 'types/Project';
+import { useDispatch, useSelector } from 'hooks/useRedux';
+import { selectProjectByUUID, createQuotation } from 'redux/slices/projectSlice';
+import { generateQuotationReference, genereteQuotationTitle } from 'utils/projectUtils';
+import { QuotationSubtitle } from 'constants/app';
 
 const ProjectDetails = () => {
   const location = useLocation();
-  const [project] = useState<ProjectType | null>(
-    location.state ? (location.state as ProjectType) : null,
-  );
+  const { id } = useParams<{ id: string }>();
+  const project = useSelector(selectProjectByUUID(id));
+  const dispatch = useDispatch();
 
   const onClickCreateQuotation = () => {
-    console.log('here');
+    if (project) {
+      const reference = generateQuotationReference(project.startDate, project.property, 1, 1, 'AD');
+
+      const quotation: QuotationType = {
+        reference,
+        name: project.name,
+        property: project.property,
+        date: project.startDate,
+        nric: project.nric,
+        contactNo: project.contactNo,
+        email: project.email,
+        remarks: project.remarks,
+        title: genereteQuotationTitle(project.address),
+        subtitle: QuotationSubtitle,
+        sections: [],
+      };
+
+      dispatch(createQuotation.trigger({ projectId: project.uuid, quotation }));
+      dispatch(push(`${location.pathname}/quotation/${reference}`));
+    }
   };
+
+  if (!project) {
+    return null;
+  }
 
   return (
     <>
@@ -22,7 +51,7 @@ const ProjectDetails = () => {
       <Container className="mt--6" fluid>
         <Row>
           <Col sm="6" xs="12">
-            <FormProjectDetails project={project} />
+            <ProjectDetailsUpdateForm project={project} />
           </Col>
           <Col sm="6" xs="12">
             <Row>
@@ -32,62 +61,26 @@ const ProjectDetails = () => {
                     <h2 className="mb-0">Quotation</h2>
                   </CardHeader>
                   <CardBody>
-                    {project?.quotations.length === 0 && (
+                    {project.quotations.length === 0 ? (
                       <Button color="primary" onClick={onClickCreateQuotation}>
                         Add Quotation
                       </Button>
+                    ) : (
+                      <div
+                        className="timeline timeline-one-side"
+                        data-timeline-axis-style="dashed"
+                        data-timeline-content="axis"
+                      >
+                        {project.quotations.map((quotation) => (
+                          <SectionQuotation
+                            key={quotation.reference}
+                            reference={quotation.reference}
+                            date={quotation.date}
+                          />
+                        ))}
+                      </div>
                     )}
-                    {/* <div
-                      className="timeline timeline-one-side"
-                      data-timeline-axis-style="dashed"
-                      data-timeline-content="axis"
-                    >
-                      <div className="timeline-block">
-                        <span className="timeline-step badge-info">
-                          <i className="ni ni-collection" />
-                        </span>
-                        <div className="timeline-content">
-                          <small className="text-muted font-weight-bold">26 Sep 2021</small>
-                          <h5 className="mt-3 mb-0">BCQ-0927-121-AD</h5>
-                          <div className="mt-3">
-                            <Badge color="success" pill>
-                              design
-                            </Badge>
-                            <Badge color="success" pill>
-                              system
-                            </Badge>
-                            <Badge color="success" pill>
-                              creative
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="timeline-block">
-                        <span className="timeline-step badge-info">
-                          <i className="ni ni-collection" />
-                        </span>
-                        <div className="timeline-content">
-                          <small className="text-muted font-weight-bold">27 Sep 2021</small>
-                          <h5 className="mt-3 mb-0">BCQ-0927-122-AD</h5>
-                          <div className="mt-3">
-                            <Badge color="success" pill>
-                              design
-                            </Badge>
-                            <Badge color="success" pill>
-                              system
-                            </Badge>
-                            <Badge color="success" pill>
-                              creative
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div> */}
                   </CardBody>
-                  {/* <CardHeader>
-                    <h2 className="mb-0">Agreement</h2>
-                  </CardHeader>
-                  <CardBody></CardBody> */}
                 </Card>
               </Col>
             </Row>

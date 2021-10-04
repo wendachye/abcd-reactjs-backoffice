@@ -1,34 +1,27 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Container, Card, CardHeader, CardBody, Row, Col, Input } from 'reactstrap';
 import PageSubheader from 'components/Headers/PageSubheader';
 import Button from 'components/Custom/Button';
-import ModalCreateProject from 'components/Projects/ModalCreateProject';
-import TableProjectList from 'components/Projects/TableProjectList';
-import { useAppSelector } from 'hooks/app';
+import CreateProjectModal from 'components/Project/CreateProjectModal';
+import ProjectListTable from 'components/Project/ProjectListTable';
+import { selectProjects } from 'redux/slices/projectSlice';
+import { useSelector } from 'hooks/useRedux';
 import { ProjectType } from 'types/Project';
 
-const ProjectListing = () => {
-  const { projects } = useAppSelector((state) => state.project);
+const ProjectList = () => {
+  const projects = useSelector(selectProjects);
   const [modalNewVisible, setModalNewVisible] = useState(false);
   const [filteredProjects, setFilteredProjects] = useState<ProjectType[]>(projects);
   const [searchValue, setSearchValue] = useState<string>('');
 
-  const onClickNewProject = () => setModalNewVisible(true);
-
-  const onClickCancelProject = useCallback(() => setModalNewVisible(false), []);
-
-  const onChangeSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    setSearchValue(value);
-
-    if (value) {
+  useEffect(() => {
+    if (searchValue) {
       const searchResult = projects.filter((project) => {
         return (
-          project.name.toLowerCase().includes(value) ||
-          project.address.toLowerCase().includes(value) ||
-          project.contactNo.toLowerCase().includes(value) ||
-          project.startDate.toLowerCase().includes(value)
+          project.name.toLowerCase().includes(searchValue) ||
+          project.address.toLowerCase().includes(searchValue) ||
+          project.startDate.toLowerCase().includes(searchValue) ||
+          (project?.contactNo && project.contactNo.toLowerCase().includes(searchValue))
         );
       });
 
@@ -36,7 +29,11 @@ const ProjectListing = () => {
     } else {
       setFilteredProjects(projects);
     }
-  };
+  }, [searchValue, projects]);
+
+  const onClickNewProject = () => setModalNewVisible(true);
+
+  const onClickCancelProject = useCallback(() => setModalNewVisible(false), []);
 
   return (
     <>
@@ -44,17 +41,17 @@ const ProjectListing = () => {
       <Container className="mt--6" fluid>
         <Card>
           <CardHeader className="border-0">
-            <Row className="align-items-end">
+            <Row className="align-items-center">
               <Col className="" sm="6" xs="12">
                 <Input
                   style={{ width: 250 }}
                   placeholder="Search"
                   type="text"
                   value={searchValue}
-                  onChange={onChangeSearch}
+                  onChange={(e) => setSearchValue(e.target.value)}
                 />
               </Col>
-              <Col className="mt-4 text-right" sm="6" xs="12">
+              <Col className="text-right" sm="6" xs="12">
                 <Button color="primary" size="sm" onClick={onClickNewProject}>
                   Create
                 </Button>
@@ -65,13 +62,13 @@ const ProjectListing = () => {
             </Row>
           </CardHeader>
           <CardBody>
-            <TableProjectList projects={filteredProjects} />
+            <ProjectListTable projects={filteredProjects} />
           </CardBody>
         </Card>
       </Container>
-      <ModalCreateProject visible={modalNewVisible} onClickCancel={onClickCancelProject} />
+      <CreateProjectModal visible={modalNewVisible} onClickCancel={onClickCancelProject} />
     </>
   );
 };
 
-export default ProjectListing;
+export default ProjectList;

@@ -14580,7 +14580,7 @@ textarea[resize="horizontal"] {
     padding: 1.5rem; }
 
 .sidenav-header {
-  height: 78px; }
+  height: fit-content; }
 
 .g-sidenav-show .sidenav .navbar-brand,
 .g-sidenav-show .sidenav .navbar-heading .docs-normal {

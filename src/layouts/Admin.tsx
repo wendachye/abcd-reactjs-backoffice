@@ -5,7 +5,7 @@ import Sidebar from 'components/Sidebar/Sidebar';
 import routes from 'routes';
 import { RouteType } from 'types/App';
 
-const Admin = (): JSX.Element => {
+const Admin = () => {
   const [sidenavOpen, setSidenavOpen] = useState(true);
   const location = useLocation();
   const mainContentRef = useRef<HTMLDivElement | null>(null);

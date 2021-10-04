@@ -1,12 +1,14 @@
-import { useMemo, FC } from 'react';
+import { useMemo, FC, memo } from 'react';
 import { Button } from 'reactstrap';
 import _ from 'lodash';
 
 interface CustomButtonProps {
+  children: React.ReactNode;
+  id?: string;
   type?: 'button' | 'submit' | 'reset';
   className?: string;
-  color?: string;
-  size?: string;
+  color?: 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'danger' | 'warning';
+  size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
   debounce?: boolean;
@@ -16,6 +18,7 @@ interface CustomButtonProps {
 
 const CustomButton: FC<CustomButtonProps> = ({
   children,
+  id,
   type = 'button',
   className,
   color,
@@ -39,6 +42,7 @@ const CustomButton: FC<CustomButtonProps> = ({
 
   return (
     <Button
+      id={id}
       type={type}
       className={className}
       color={color}
@@ -61,4 +65,4 @@ const CustomButton: FC<CustomButtonProps> = ({
   );
 };
 
-export default CustomButton;
+export default memo(CustomButton);
